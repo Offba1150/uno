@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>โต๊ะ UNO</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#f3ede0; --surface:#ffffff; --surface-2:#faf6ec; --ink:#241c14; --muted:#8a7c67; --line:#e6dcc6;
+  --table:#2f6b4f; --table-2:#255a41;
+  --c-red:#e6423a; --c-yellow:#f2b100; --c-green:#2e9e4f; --c-blue:#2461d1; --danger:#c93838;
+  --shadow: 0 10px 30px -12px rgba(36,28,20,0.35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12201a; --surface:#1b2a22; --surface-2:#203026; --ink:#f3ede0; --muted:#9db3a4; --line:#2b4235;
+    --table:#1c3f2c; --table-2:#163024; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12201a; --surface:#1b2a22; --surface-2:#203026; --ink:#f3ede0; --muted:#9db3a4; --line:#2b4235;
+  --table:#1c3f2c; --table-2:#163024; color-scheme: dark;
+}
+*{box-sizing:border-box;}
+html,body{height:100%; margin:0;}
+body{background:var(--bg); color:var(--ink); font-family:'Inter',system-ui,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+#app{height:100%; display:flex; flex-direction:column; padding-inline:16px; padding-block:14px; gap:12px; overflow:hidden;}
+h1,h2,h3{font-family:'Fredoka',system-ui,sans-serif; margin:0;}
+button{font-family:inherit; cursor:pointer;}
+.btn{border:none; border-radius:14px; padding:12px 18px; font-weight:600; font-size:0.95rem;
+  background:var(--table); color:#fff; box-shadow:var(--shadow);}
+.btn:active{transform:scale(.96);}
+.btn.secondary{background:var(--surface-2); color:var(--ink); border:1px solid var(--line); box-shadow:none;}
+.btn:disabled{opacity:.45; cursor:not-allowed;}
+.btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+input[type=text]{font-family:inherit; font-size:1rem; padding:12px 14px; border-radius:12px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink); width:100%;}
+.card-panel{background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:18px; box-shadow:var(--shadow);}
+.muted{color:var(--muted); font-size:0.85rem;}
+.landing{max-width:420px; margin:auto; width:100%; display:flex; flex-direction:column; gap:16px;}
+.landing .logo{font-family:'Fredoka'; font-size:2.2rem; font-weight:700; text-align:center;}
+.landing .logo span:nth-child(1){color:var(--c-red);}
+.landing .logo span:nth-child(2){color:var(--c-blue);}
+.landing .logo span:nth-child(3){color:var(--c-yellow);}
+.landing .logo span:nth-child(4){color:var(--c-green);}
+.lobby-list{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+.lobby-row{display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface-2); border-radius:12px;}
+.dot{width:10px; height:10px; border-radius:50%; background:#bbb; flex-shrink:0;}
+.dot.on{background:var(--table);}
+.code-chip{font-family:'Fredoka'; font-weight:700; font-size:1.6rem; letter-spacing:.12em; text-align:center;
+  background:var(--surface-2); border:1px dashed var(--line); border-radius:14px; padding:14px; color:var(--table);}
+.game{flex:1; display:flex; flex-direction:column; gap:10px; min-height:0;}
+.opp-rail{display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;}
+.opp-chip{flex:0 0 auto; display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line);
+  border-radius:999px; padding:6px 12px 6px 10px; box-shadow:var(--shadow);}
+.opp-chip.active{outline:2px solid var(--c-yellow); background:var(--surface-2);}
+.opp-chip .name{font-size:0.82rem; font-weight:600;}
+.opp-chip .count{font-family:'Fredoka'; font-weight:700; font-size:0.78rem; background:var(--table); color:#fff;
+  border-radius:999px; padding:2px 8px; min-width:22px; text-align:center;}
+.opp-chip .uno-flag{color:var(--c-red); font-weight:700; font-size:0.72rem;}
+.opp-chip .catch-btn{border:none; background:var(--c-red); color:#fff; font-size:0.68rem; font-weight:700; border-radius:999px; padding:3px 8px;}
+.stage{flex:1; min-height:0; background:radial-gradient(120% 140% at 50% 0%, var(--table) 0%, var(--table-2) 70%);
+  border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  padding:16px; position:relative; color:#fff;}
+.stage .turn-label{position:absolute; top:12px; left:50%; transform:translateX(-50%); font-family:'Fredoka';
+  font-size:0.85rem; background:rgba(0,0,0,.25); padding:5px 14px; border-radius:999px;}
+.piles{display:flex; align-items:center; gap:22px;}
+.pile-label{font-size:0.68rem; text-transform:uppercase; letter-spacing:.08em; opacity:.85; text-align:center; margin-top:6px;}
+.deck-stack{position:relative; width:76px; height:106px;}
+.deck-stack .back{position:absolute; inset:0; border-radius:12px; background:#1a1a1f; border:2px solid #fff3; box-shadow:0 6px 14px rgba(0,0,0,.35);}
+.deck-stack .back::after{content:"UNO"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'Fredoka'; font-weight:700; color:#f2b100; font-size:0.85rem; letter-spacing:.05em;}
+.deck-stack button{position:absolute; inset:0; background:transparent; border:none; border-radius:12px;}
+.card{width:76px; height:106px; border-radius:12px; background:var(--card-color); position:relative; flex-shrink:0;
+  box-shadow:0 6px 14px rgba(0,0,0,.35); border:2px solid rgba(255,255,255,.55); display:flex; align-items:center; justify-content:center;}
+.card--wild{background:conic-gradient(from 0deg, var(--c-red) 0 25%, var(--c-yellow) 25% 50%, var(--c-green) 50% 75%, var(--c-blue) 75% 100%);}
+.card-oval{width:64%; height:78%; background:rgba(255,255,255,.92); border-radius:50%; transform:rotate(-18deg);
+  display:flex; align-items:center; justify-content:center; color:var(--card-color); font-family:'Fredoka'; font-weight:700; font-size:1.5rem;}
+.card--wild .card-oval{color:#1a1a1f;}
+.card-corner{position:absolute; font-family:'Fredoka'; font-weight:700; font-size:0.68rem; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.4);}
+.card-corner.tl{top:6px; left:8px;} .card-corner.br{bottom:6px; right:8px; transform:rotate(180deg);}
+.hand-wrap{display:flex; flex-direction:column; gap:6px;}
+.hand-tray{display:flex; overflow-x:auto; padding:10px 6px 14px; min-height:110px;}
+.hand-card-btn{background:none; border:none; padding:0; margin-right:-16px; transition:transform .12s ease;}
+.hand-card-btn:last-child{margin-right:0;}
+.hand-card-btn.playable:active{transform:translateY(-8px);}
+.hand-card-btn.playable .card{outline:3px solid var(--c-yellow);}
+.hand-card-btn.dim .card{filter:grayscale(.5) brightness(.75);}
+.action-bar{display:flex; justify-content:space-between; align-items:center; gap:10px;}
+.eyebrow{text-transform:uppercase; letter-spacing:.08em; font-size:0.72rem; color:var(--muted); font-weight:600;}
+.uno-btn{border:none; border-radius:999px; padding:12px 20px; font-family:'Fredoka'; font-weight:700; font-size:1rem;
+  background:var(--c-red); color:#fff; box-shadow:var(--shadow); animation:pulse 1.1s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);} 50%{transform:scale(1.06);}}
+.forced-banner{background:var(--c-red); color:#fff; border-radius:14px; padding:12px 16px; display:flex; align-items:center;
+  justify-content:space-between; gap:10px; font-weight:600; font-size:0.9rem;}
+.forced-banner button{background:#fff; color:var(--c-red); border:none; border-radius:10px; padding:8px 14px; font-weight:700;}
+.log-strip{font-size:0.76rem; color:var(--muted); max-height:38px; overflow-y:auto; line-height:1.5;}
+.modal-overlay{position:fixed; inset:0; background:rgba(20,15,10,.55); display:flex; align-items:center; justify-content:center; padding:20px; z-index:20;}
+.modal-overlay[hidden]{display:none;}
+.modal{background:var(--surface); border-radius:18px; padding:22px; max-width:320px; width:100%; text-align:center; box-shadow:var(--shadow);}
+.color-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;}
+.color-swatch{border:none; border-radius:14px; height:64px; font-family:'Fredoka'; font-weight:700; color:#fff; font-size:0.95rem;}
+.finish-wrap{max-width:380px; margin:auto; text-align:center; display:flex; flex-direction:column; gap:16px;}
+.trophy{font-size:3rem;}
+.conn-banner{position:fixed; top:0; left:0; right:0; background:var(--danger); color:#fff; text-align:center;
+  font-size:0.8rem; padding:6px; z-index:30;}
+.conn-banner[hidden]{display:none;}
+@media (max-width:420px){ .card{width:66px; height:92px;} .card-oval{font-size:1.25rem;} }
+</style>
+</head>
+<body>
+<div id="connBanner" class="conn-banner" hidden>⚠️ การเชื่อมต่อหลุด กำลังพยายามเชื่อมต่อใหม่...</div>
+<div id="app"></div>
+<div id="colorPicker" class="modal-overlay" hidden>
+  <div class="modal">
+    <h3>เลือกสี</h3>
+    <p class="muted">เล่นการ์ด Wild แล้ว เลือกสีที่จะใช้ต่อ</p>
+    <div class="color-grid">
+      <button class="color-swatch" style="background:var(--c-red)" data-color="R">แดง</button>
+      <button class="color-swatch" style="background:var(--c-yellow)" data-color="Y">เหลือง</button>
+      <button class="color-swatch" style="background:var(--c-green)" data-color="G">เขียว</button>
+      <button class="color-swatch" style="background:var(--c-blue)" data-color="B">น้ำเงิน</button>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+'use strict';
+const COLOR_NAMES = {R:'แดง', Y:'เหลือง', G:'เขียว', B:'น้ำเงิน'};
+const COLOR_VAR = {R:'var(--c-red)', Y:'var(--c-yellow)', G:'var(--c-green)', B:'var(--c-blue)'};
+function isWild(c){ return c==='WILD'||c==='WILD4'; }
+function colorOf(c){ return isWild(c)? null : c[0]; }
+function valueOf(c){ return isWild(c)? c : c.slice(1); }
+function cardPlayable(c, topColor, topValue){
+  if(isWild(c)) return true;
+  if(colorOf(c)===topColor) return true;
+  if(valueOf(c)===topValue) return true;
+  return false;
+}
+function cardLabel(card){
+  if(card==='WILD') return '★';
+  if(card==='WILD4') return '+4';
+  const v = valueOf(card);
+  if(v==='SKIP') return '⦸';
+  if(v==='REV') return '⇄';
+  if(v==='D2') return '+2';
+  return v;
+}
+
+function getClientId(){
+  let id = localStorage.getItem('uno_client_id');
+  if(!id){
+    id = 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    try{ localStorage.setItem('uno_client_id', id); }catch(e){}
+  }
+  return id;
+}
+function getSavedName(){ try{ return localStorage.getItem('uno_name') || ''; }catch(e){ return ''; } }
+function saveName(n){ try{ localStorage.setItem('uno_name', n); }catch(e){} }
+
+const myId = getClientId();
+let myName = getSavedName();
+const App = { phase:'landing', code:null, state:null, hand:[] };
+let pendingWildIdx = null;
+
+const socket = io();
+socket.on('connect', ()=>{ document.getElementById('connBanner').hidden = true; });
+socket.on('disconnect', ()=>{ document.getElementById('connBanner').hidden = false; });
+socket.on('joined', ({code})=>{ enterRoom(code); });
+socket.on('state', (state)=>{ App.state = state; render(); });
+socket.on('hand', ({cards})=>{ App.hand = cards||[]; render(); });
+socket.on('error_msg', (msg)=> alert(msg));
+socket.on('need_color', ({cardIndex})=>{ openColorPicker(cardIndex); });
+
+function decodeHash(){
+  const h = location.hash.replace('#','').toUpperCase();
+  return /^[A-Z0-9]{4}$/.test(h) ? h : null;
+}
+function enterRoom(code){
+  App.code = code; App.phase='room'; App.state=null;
+  location.hash = code;
+  render();
+}
+function nameOf(id){
+  if(!App.state) return 'ผู้เล่น';
+  if(id===myId) return myName + ' (คุณ)';
+  const p = App.state.players.find(x=>x.id===id);
+  return (p && p.name) || 'ผู้เล่น';
+}
+
+function createRoom(){
+  socket.emit('create_room', {name: myName, clientId: myId});
+}
+function joinRoomByCode(raw){
+  const code = (raw||'').toUpperCase().trim();
+  if(!/^[A-Z0-9]{4}$/.test(code)){ alert('รหัสห้องต้องมี 4 ตัวอักษร/ตัวเลขครับ'); return; }
+  socket.emit('join_room', {code, name: myName, clientId: myId});
+}
+function startGame(){ socket.emit('start_game', {code: App.code}); }
+function leaveRoom(){ socket.emit('leave_room', {code: App.code}); backToLanding(); }
+function backToLanding(){
+  App.phase='landing'; App.code=null; App.state=null; App.hand=[];
+  history.replaceState(null,'',location.pathname+location.search);
+  render();
+}
+function openColorPicker(idx){ pendingWildIdx = idx; document.getElementById('colorPicker').hidden = false; }
+function closeColorPicker(){ pendingWildIdx = null; document.getElementById('colorPicker').hidden = true; }
+function playCard(idx, chosenColor){
+  const st = App.state; if(!st || st.status!=='playing') return;
+  const card = App.hand[idx]; if(!card) return;
+  if(isWild(card) && !chosenColor){ openColorPicker(idx); return; }
+  socket.emit('play_card', {code:App.code, cardIndex:idx, chosenColor});
+  closeColorPicker();
+}
+function drawCard(){ socket.emit('draw_card', {code:App.code}); }
+function resolveForcedDraw(){ socket.emit('resolve_forced_draw', {code:App.code}); }
+function declareUno(){ socket.emit('declare_uno', {code:App.code}); }
+function catchUno(targetId){ socket.emit('catch_uno', {code:App.code, targetId}); }
+function playAgain(){ socket.emit('play_again', {code:App.code}); }
+
+/* ===================== rendering ===================== */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function cardFrontHTML(card){
+  const wild = isWild(card);
+  const lbl = cardLabel(card);
+  const cls = 'card'+(wild?' card--wild':'');
+  const style = wild ? '' : ('style="--card-color:'+COLOR_VAR[colorOf(card)]+'"');
+  return '<div class="'+cls+'" '+style+'>'+
+    '<span class="card-corner tl">'+lbl+'</span>'+
+    '<span class="card-oval">'+lbl+'</span>'+
+    '<span class="card-corner br">'+lbl+'</span>'+
+  '</div>';
+}
+function simpleMsg(msg){ return '<div class="landing"><div class="card-panel" style="text-align:center;">'+escapeHtml(msg)+'</div></div>'; }
+
+function render(){
+  const root = document.getElementById('app');
+  if(App.phase==='landing'){ root.innerHTML = landingHTML(); wireLanding(); return; }
+  if(App.phase==='room'){
+    const st = App.state;
+    if(!st){ root.innerHTML = simpleMsg('กำลังโหลดห้อง...'); return; }
+    if(st.status==='waiting'){ root.innerHTML = lobbyHTML(st); wireLobby(st); return; }
+    if(st.status==='playing'){ root.innerHTML = gameHTML(st); wireGame(st); return; }
+    if(st.status==='finished'){ root.innerHTML = finishedHTML(st); wireFinished(); return; }
+  }
+}
+
+function landingHTML(){
+  const prefill = decodeHash() || '';
+  return '<div class="landing">'+
+    '<div class="logo"><span>U</span><span>N</span><span>O</span><span>!</span></div>'+
+    '<div class="card-panel">'+
+      '<h3>ชื่อของคุณ</h3>'+
+      '<input type="text" id="nameInput" placeholder="พิมพ์ชื่อเล่น" maxlength="20" value="'+escapeHtml(myName)+'">'+
+    '</div>'+
+    '<div class="card-panel">'+
+      '<h3>สร้างห้องใหม่</h3>'+
+      '<p class="muted">ได้ลิงก์ห้องมาแชร์ให้เพื่อนเข้าร่วมได้ทันที ไม่ต้องล็อกอินอะไรเลย</p>'+
+      '<div class="btn-row"><button class="btn" id="btnCreate">สร้างห้อง 🎲</button></div>'+
+    '</div>'+
+    '<div class="card-panel">'+
+      '<h3>เข้าร่วมห้อง</h3>'+
+      '<div class="btn-row" style="flex-direction:column; gap:10px;">'+
+        '<input type="text" id="joinCode" placeholder="รหัสห้อง 4 ตัว" maxlength="4" value="'+escapeHtml(prefill)+'" style="text-transform:uppercase; text-align:center; font-family:Fredoka; font-weight:700; letter-spacing:.1em;">'+
+        '<button class="btn secondary" id="btnJoin">เข้าร่วม</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+function currentName(){
+  const inp = document.getElementById('nameInput');
+  const n = (inp && inp.value.trim()) || myName || 'ผู้เล่น';
+  myName = n.slice(0,20); saveName(myName);
+  return myName;
+}
+function wireLanding(){
+  document.getElementById('btnCreate').onclick = ()=>{ currentName(); createRoom(); };
+  document.getElementById('btnJoin').onclick = ()=>{ currentName(); joinRoomByCode(document.getElementById('joinCode').value); };
+  const hashCode = decodeHash();
+  if(hashCode){
+    const j = document.getElementById('joinCode');
+    if(j && !j.value) j.value = hashCode;
+  }
+}
+
+function lobbyHTML(st){
+  const MAX_PLAYERS = 8;
+  const rows = st.players.map(p=>
+    '<div class="lobby-row"><span class="dot '+(p.connected?'on':'')+'"></span><div>'+escapeHtml(nameOf(p.id))+(p.id===st.hostId?' <span class="muted">(หัวห้อง)</span>':'')+'</div></div>'
+  ).join('');
+  return '<div class="landing">'+
+    '<div class="code-chip">'+escapeHtml(st.code)+'</div>'+
+    '<div class="card-panel"><div class="btn-row"><button class="btn secondary" id="btnCopy">📋 คัดลอกลิงก์ชวนเพื่อน</button></div></div>'+
+    '<div class="card-panel">'+
+      '<h3>ผู้เล่นในห้อง ('+st.players.length+'/'+MAX_PLAYERS+')</h3>'+
+      '<div class="lobby-list">'+rows+'</div>'+
+      '<p class="muted" style="margin-top:10px;">'+(st.players.length>=MAX_PLAYERS?'ห้องเต็มแล้วครับ เริ่มเกมได้เลย':'ต้องมีอย่างน้อย 2 คนถึงจะเริ่มเกมได้ (สูงสุด '+MAX_PLAYERS+' คน)')+'</p>'+
+      '<div class="btn-row"><button class="btn" id="btnStart" '+(st.players.length<2?'disabled':'')+'>เริ่มเกม ▶</button>'+
+      '<button class="btn secondary" id="btnLeave">ออกจากห้อง</button></div>'+
+    '</div>'+
+  '</div>';
+}
+function wireLobby(){
+  document.getElementById('btnStart').onclick = ()=> startGame();
+  document.getElementById('btnLeave').onclick = ()=> leaveRoom();
+  document.getElementById('btnCopy').onclick = async (e)=>{
+    const url = location.href.split('#')[0]+'#'+App.code;
+    try{ await navigator.clipboard.writeText(url); e.target.textContent='✅ คัดลอกแล้ว'; }
+    catch(err){ prompt('คัดลอกลิงก์นี้ส่งให้เพื่อน:', url); }
+  };
+}
+
+function gameHTML(st){
+  const others = st.turnOrder.filter(id=>id!==myId);
+  const oppChips = others.map(id=>{
+    const active = st.turnOrder[st.currentIndex]===id;
+    const pdata = st.players.find(p=>p.id===id);
+    const cnt = pdata ? pdata.cardCount : 0;
+    const vulnerable = st.unoState && st.unoState[id]==='vulnerable';
+    return '<div class="opp-chip'+(active?' active':'')+'">'+
+      '<div><div class="name">'+escapeHtml(nameOf(id))+(pdata&&!pdata.connected?' <span class="muted">(หลุด)</span>':'')+'</div>'+
+      (vulnerable?'<div class="uno-flag">UNO!</div>':'')+
+      '</div><div class="count">'+cnt+'</div>'+
+      (vulnerable?'<button class="catch-btn" data-catch="'+id+'">จับ!</button>':'')+
+    '</div>';
+  }).join('');
+
+  const topCard = st.discard[st.discard.length-1];
+  const myTurn = st.turnOrder[st.currentIndex]===myId;
+  const topVal = valueOf(topCard);
+  const handButtons = App.hand.map((card, idx)=>{
+    const playable = myTurn && st.pendingDraw===0 && cardPlayable(card, st.currentColor, topVal);
+    return '<button class="hand-card-btn '+(playable?'playable':'dim')+'" data-idx="'+idx+'">'+cardFrontHTML(card)+'</button>';
+  }).join('');
+
+  const myVulnerable = st.unoState && st.unoState[myId]==='vulnerable';
+  const forcedOnMe = myTurn && st.pendingDraw>0;
+  const colorDot = st.currentColor ? '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:'+COLOR_VAR[st.currentColor]+';margin-right:6px;"></span>' : '';
+
+  return '<div class="game">'+
+    '<div class="opp-rail">'+oppChips+'</div>'+
+    '<div class="stage">'+
+      '<div class="turn-label">'+(myTurn? 'ตาคุณเล่น!' : (nameOf(st.turnOrder[st.currentIndex])+' กำลังเล่น...'))+'</div>'+
+      '<div class="piles">'+
+        '<div><div class="deck-stack"><div class="back"></div>'+(myTurn && st.pendingDraw===0 ? '<button id="btnDraw"></button>' : '')+'</div>'+
+        '<div class="pile-label">กองจั่ว ('+st.deckCount+')</div></div>'+
+        '<div>'+cardFrontHTML(topCard)+'<div class="pile-label">'+colorDot+COLOR_NAMES[st.currentColor]+'</div></div>'+
+      '</div>'+
+      (forcedOnMe ? '<div class="forced-banner">ต้องจั่วไพ่ '+st.pendingDraw+' ใบ! <button id="btnForced">จั่วเลย</button></div>' : '')+
+    '</div>'+
+    '<div class="hand-wrap">'+
+      '<div class="action-bar">'+
+        '<div class="eyebrow">ไพ่ของคุณ ('+App.hand.length+')</div>'+
+        (myVulnerable ? '<button class="uno-btn" id="btnUno">UNO! กดเลย</button>' : '')+
+      '</div>'+
+      '<div class="hand-tray">'+handButtons+'</div>'+
+    '</div>'+
+    '<div class="log-strip">'+(st.log||[]).slice(-4).map(l=>escapeHtml(l.msg)).reverse().join(' · ')+'</div>'+
+  '</div>';
+}
+function wireGame(){
+  const drawBtn = document.getElementById('btnDraw'); if(drawBtn) drawBtn.onclick = ()=> drawCard();
+  const forcedBtn = document.getElementById('btnForced'); if(forcedBtn) forcedBtn.onclick = ()=> resolveForcedDraw();
+  const unoBtn = document.getElementById('btnUno'); if(unoBtn) unoBtn.onclick = ()=> declareUno();
+  document.querySelectorAll('[data-catch]').forEach(b=>{ b.onclick = ()=> catchUno(b.getAttribute('data-catch')); });
+  document.querySelectorAll('.hand-card-btn.playable').forEach(b=>{ b.onclick = ()=> playCard(parseInt(b.getAttribute('data-idx'),10)); });
+}
+
+function finishedHTML(st){
+  return '<div class="finish-wrap"><div class="trophy">🏆</div>'+
+    '<h2>'+escapeHtml(nameOf(st.winner))+' ชนะ!</h2>'+
+    '<div class="btn-row" style="justify-content:center;">'+
+      '<button class="btn" id="btnAgain">เล่นอีกรอบ</button>'+
+      '<button class="btn secondary" id="btnLeave2">ออกจากห้อง</button>'+
+    '</div></div>';
+}
+function wireFinished(){
+  document.getElementById('btnAgain').onclick = ()=> playAgain();
+  document.getElementById('btnLeave2').onclick = ()=> leaveRoom();
+}
+
+document.getElementById('colorPicker').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-color]');
+  if(btn && pendingWildIdx!==null){ playCard(pendingWildIdx, btn.getAttribute('data-color')); }
+  else if(e.target.id==='colorPicker'){ closeColorPicker(); }
+});
+
+/* boot: auto-rejoin if hash has a room code and we already have a saved name */
+(function boot(){
+  const code = decodeHash();
+  if(code && myName){
+    App.phase='room'; App.code=code;
+    socket.emit('join_room', {code, name: myName, clientId: myId});
+  }
+  render();
+})();
+</script>
+</body>
+</html>
